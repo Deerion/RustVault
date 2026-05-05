@@ -1,23 +1,45 @@
-### AL ###
-#Template for AL projects for Dynamics 365 Business Central
-#launch.json folder
+# --- Unity Temporary/Generated Files ---
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+[Uu]ser[Ss]ettings/
+
+# --- Asset store packages ---
+# Warto ignorować, jeśli pobierasz duże paczki, które można pobrać ponownie
+/[Aa]ssets/AssetStoreTools*
+
+# --- URP & Shader Cache ---
+/[Aa]ssets/ShaderCache/
+
+# --- Gradle/Android Studio (jeśli będziesz robił buildy) ---
+.gradle/
+/[Aa]ssets/Plugins/Android/
+
+# --- IDE Specific Files (Visual Studio / VS Code) ---
+.vs/
 .vscode/
-#Cache folder
-.alcache/
-#Symbols folder
-.alpackages/
-#Snapshots folder
-.snapshots/
-#Testing Output folder
-.output/
-#Extension App-file
-*.app
-#Rapid Application Development File
-rad.json
-#Translation Base-file
-*.g.xlf
-#License-files
-*.bclicense
-*.flf
-#Test results file
-TestResults.xml
+*.csproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.opendb
+*.VC.db
+
+# --- OS Specific Files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Unity Crash Handler ---
+sysinfo.txt
+
+/[Aa]ssets/UnityVersionControl/
