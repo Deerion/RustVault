@@ -1,36 +1,47 @@
 using UnityEngine;
 using UnityEngine.InputSystem; // WAŻNE: Dodajemy obsługę New Input System!
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : LivingEntity
 {
     [Header("Ustawienia Ruchu")]
     public float moveSpeed = 5f;
-    public float sensitivity = 0.1f; // Nowy system podaje inne wartości delta, mniejsza czułość jest lepsza
+    public float sensitivity = 50f;
 
     [Header("Ustawienia Walki")]
-    public float attackRange = 3.5f; // Zasięg ataku z bliska
-    public int attackDamage = 10;    // Ilość zadawanych obrażeń
+    public float attackRange = 3.5f;
+    public int attackDamage = 10;
 
     [Header("Referencje")]
     public CharacterController controller;
     public Transform cameraTransform;
 
-    // Zmienne do przechowywania wejścia z klawiatury i myszy
     private Vector2 moveInput;
     private Vector2 lookInput;
     private float verticalRotation = 0f;
 
-    void Start()
+    // ZMIANA: Nadpisujemy Start z klasy LivingEntity
+    protected override void Start()
     {
-        // Ukrywamy kursor myszki
+        base.Start(); // Uruchamia kod z LivingEntity (przypisuje 100 HP i isDead = false)
         Cursor.lockState = CursorLockMode.Locked;
+    }
+
+    // ZMIANA: Własna logika śmierci gracza
+    public override void Die()
+    {
+        Debug.Log("Gracz został zabity przez potwora!");
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
+        // Zamiast niszczyć gracza, wyrzucamy go do Menu Głównego
+        UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
     }
 
     void Update()
     {
-        // 1. ROZGLĄDANIE SIĘ (Obrót myszką)
-        float mouseX = lookInput.x * sensitivity;
-        float mouseY = lookInput.y * sensitivity;
+        // 1. ROZGLĄDANIE SIĘ (Obrót myszką) - POPRAWKA (Dodano Time.deltaTime)
+        float mouseX = lookInput.x * sensitivity * Time.deltaTime;
+        float mouseY = lookInput.y * sensitivity * Time.deltaTime;
 
         verticalRotation -= mouseY;
         verticalRotation = Mathf.Clamp(verticalRotation, -90f, 90f);

@@ -7,14 +7,27 @@ public class EnemyAI : LivingEntity
 
     [Header("Sztuczna Inteligencja")]
     public EnemyState currentState = EnemyState.Patrol;
-    public float aggroRange = 7f;
-    public float attackRange = 1.5f;
+    public float aggroRange = 15f;
+    public float attackRange = 1.2f; // Zmniejszone, by podchodził pod sam nos
+
+    [Header("Patrol (Swobodne chodzenie)")]
+    public float patrolRadius = 10f;
+    public float patrolWaitTime = 3f;
+    private float patrolTimer = 0f;
+
+    [Header("Walka")]
+    public float attackCooldown = 2f;
+    private float lastAttackTime = 0f;
+
+    [Header("Optymalizacja AI")]
+    public float pathUpdateDelay = 0.15f;  // Wróg aktualizuje cel co 0.15 sekundy (zapobiega zacinaniu)
+    private float pathUpdateTimer = 0f;
 
     [Header("Referencje")]
     public NavMeshAgent agent;
+    public Animator animator; 
     private Transform playerTransform;
 
-    // Używamy Awake zamiast Start do ustawienia życia, żeby od razu było 100/100 HP!
     private void Awake()
     {
         maxHealth = 100;
@@ -24,8 +37,6 @@ public class EnemyAI : LivingEntity
 
     protected override void Start()
     {
-        // Ignorujemy domyślny Start z LivingEntity, bo zdrowie ustawiliśmy już w Awake
-
         PlayerMovement player = FindFirstObjectByType<PlayerMovement>();
         if (player != null)
         {
@@ -40,7 +51,6 @@ public class EnemyAI : LivingEntity
 
     void Update()
     {
-        // Zabezpieczenie: jeśli w edytorze dalej masz 0 HP, wymuszamy uleczenie potwora
         if (currentHealth <= 0 && !isDead)
         {
             currentHealth = maxHealth;
@@ -48,8 +58,13 @@ public class EnemyAI : LivingEntity
 
         if (isDead || playerTransform == null || agent == null || !agent.isOnNavMesh) return;
 
-        float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+        // Ignorujemy wysokość (oś Y). Liczymy odległość tylko "na płasko".
+        Vector3 enemyPosFlat = new Vector3(transform.position.x, 0, transform.position.z);
+        Vector3 playerPosFlat = new Vector3(playerTransform.position.x, 0, playerTransform.position.z);
 
+        float distanceToPlayer = Vector3.Distance(enemyPosFlat, playerPosFlat);
+
+        // MASZYNA STANÓW WROGA (FSM)
         if (distanceToPlayer <= attackRange)
         {
             currentState = EnemyState.Attack;
@@ -64,6 +79,8 @@ public class EnemyAI : LivingEntity
         }
 
         UndergoStateAction();
+
+        animator.SetFloat("Speed", agent.velocity.magnitude);
     }
 
     private void UndergoStateAction()
@@ -84,27 +101,72 @@ public class EnemyAI : LivingEntity
 
     public void Patrol()
     {
-        if (agent.isOnNavMesh) agent.isStopped = true;
+        if (!agent.isOnNavMesh) return;
+
+        agent.isStopped = false;
+
+        if (agent.remainingDistance <= agent.stoppingDistance)
+        {
+            patrolTimer += Time.deltaTime;
+
+            if (patrolTimer >= patrolWaitTime)
+            {
+                Vector3 randomDirection = Random.insideUnitSphere * patrolRadius;
+                randomDirection += transform.position;
+
+                NavMeshHit hit;
+                if (NavMesh.SamplePosition(randomDirection, out hit, patrolRadius, 1))
+                {
+                    agent.SetDestination(hit.position);
+                    patrolTimer = 0f;
+                }
+            }
+        }
     }
 
     public void ChasePlayer()
     {
-        if (agent.isOnNavMesh)
+        if (!agent.isOnNavMesh) return;
+
+        agent.isStopped = false; // Upewniamy się, że wróg może chodzić
+
+        // Zamiast wyliczać trasę co klatkę, korzystamy z licznika czasu
+        pathUpdateTimer += Time.deltaTime;
+
+        if (pathUpdateTimer > pathUpdateDelay)
         {
-            agent.isStopped = false;
             agent.SetDestination(playerTransform.position);
+            pathUpdateTimer = 0f; // Resetujemy stoper
         }
     }
 
     public void Attack()
     {
         if (agent.isOnNavMesh) agent.isStopped = true;
-        Debug.Log("Potwór atakuje gracza!");
+
+        Vector3 direction = (playerTransform.position - transform.position).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
+
+        if (Time.time >= lastAttackTime + attackCooldown)
+        {
+            Debug.Log("Potwór zadaje obrażenia graczowi!");
+
+            animator.SetTrigger("Attack"); 
+
+            lastAttackTime = Time.time;
+
+            IDamageable target = playerTransform.GetComponent<IDamageable>();
+            if (target != null)
+            {
+                target.TakeDamage(25);
+            }
+        }
     }
 
     public override void Die()
     {
-        Debug.Log("Potwór EnemyAI został pokonany przez gracza!");
+        Debug.Log("Potwór został zlikwidowany!");
         base.Die();
     }
 }
