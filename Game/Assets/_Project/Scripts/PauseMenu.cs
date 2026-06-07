@@ -10,6 +10,9 @@ public class PauseMenu : MonoBehaviour
 
     [SerializeField] private float fadeDuration = 0.2f;
 
+    [Header("Interfejs")]
+    public GameObject crosshairUI;
+
     private bool isPaused = false;
     private Coroutine fadeCoroutine;
 
@@ -44,6 +47,11 @@ public class PauseMenu : MonoBehaviour
         // plynne pojawianie
         if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
         fadeCoroutine = StartCoroutine(FadeUI(pauseCanvasGroup, 0f, 1f, fadeDuration));
+
+        if (crosshairUI != null)
+        {
+            crosshairUI.SetActive(false); // Chowa celownik
+        }
     }
 
     public void ResumeGame()
@@ -58,6 +66,11 @@ public class PauseMenu : MonoBehaviour
         // plynne znikanie
         if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
         fadeCoroutine = StartCoroutine(FadeUI(pauseCanvasGroup, 1f, 0f, fadeDuration, true));
+
+        if (crosshairUI != null)
+        {
+            crosshairUI.SetActive(true); // Przywraca celownik
+        }
     }
 
     public void LoadMainMenu()

@@ -1,5 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;
 
 public class EnemyAI : LivingEntity
 {
@@ -53,9 +54,6 @@ public class EnemyAI : LivingEntity
         {
             agent = GetComponent<NavMeshAgent>();
         }
-
-        // Pobieramy AudioSource z wroga
-        audioSource = GetComponent<AudioSource>();
     }
 
     void Update()
@@ -87,7 +85,11 @@ public class EnemyAI : LivingEntity
 
         UndergoStateAction();
 
-        animator.SetFloat("Speed", agent.velocity.magnitude);
+        // Pobieramy prędkość
+        float currentSpeed = agent.velocity.magnitude;
+
+        // Dodajemy amortyzator (0.1f), który ignoruje chwilowe zacięcia
+        animator.SetFloat("Speed", currentSpeed, 0.1f, Time.deltaTime);
     }
 
     private void UndergoStateAction()
@@ -147,7 +149,11 @@ public class EnemyAI : LivingEntity
 
     public void Attack()
     {
-        if (agent.isOnNavMesh) agent.isStopped = true;
+        if (agent.isOnNavMesh)
+        {
+            agent.isStopped = true;
+            agent.velocity = Vector3.zero;
+        }
 
         Vector3 direction = (playerTransform.position - transform.position).normalized;
         Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
@@ -159,12 +165,6 @@ public class EnemyAI : LivingEntity
 
             animator.SetTrigger("Attack");
             lastAttackTime = Time.time;
-
-            // Odtworzenie dźwięku ataku
-            if (audioSource != null && attackSound != null)
-            {
-                audioSource.PlayOneShot(attackSound);
-            }
 
             IDamageable target = playerTransform.GetComponent<IDamageable>();
             if (target != null)
@@ -198,5 +198,33 @@ public class EnemyAI : LivingEntity
         }
 
         base.Die();
+    }
+
+    private IEnumerator DealDamageWithDelay(float delay)
+    {
+        // 1. Czekamy ułamek sekundy (aż pięść z animacji zbliży się do gracza)
+        yield return new WaitForSeconds(delay);
+
+        if (playerTransform == null || isDead) yield break;
+
+        // 2. Ponownie liczymy dystans (po tym, jak daliśmy graczowi czas na ucieczkę)
+        Vector3 enemyPosFlat = new Vector3(transform.position.x, 0, transform.position.z);
+        Vector3 playerPosFlat = new Vector3(playerTransform.position.x, 0, playerTransform.position.z);
+        float currentDistance = Vector3.Distance(enemyPosFlat, playerPosFlat);
+
+        // 3. Dodajemy mały margines błędu do zasięgu (np. 0.5f), żeby atak był sprawiedliwy
+        if (currentDistance <= attackRange + 0.5f)
+        {
+            Debug.Log("Cios trafił gracza!");
+            IDamageable target = playerTransform.GetComponent<IDamageable>();
+            if (target != null)
+            {
+                target.TakeDamage(25);
+            }
+        }
+        else
+        {
+            Debug.Log("Pudło! Gracz zdążył odskoczyć do tyłu.");
+        }
     }
 }
