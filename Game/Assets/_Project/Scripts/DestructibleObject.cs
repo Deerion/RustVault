@@ -27,6 +27,17 @@ public class DestructibleObject : MonoBehaviour, IDamageable
         isDestroyed = true;
         Debug.Log($"{gameObject.name} został zniszczony! Upuszczono złom w ilości: {scrapDropAmount}");
 
+        // Odtworzenie dźwięku niszczenia
+        AudioSource audioSource = GetComponent<AudioSource>();
+        if (audioSource != null && audioSource.clip != null)
+        {
+            // Odpinamy komponent AudioSource od beczki, żeby usunięcie obiektu nie przerwało dźwięku
+            audioSource.transform.parent = null;
+            audioSource.Play();
+            // Niszczymy pusty obiekt z dźwiękiem dopiero, gdy plik przestanie grać
+            Destroy(audioSource.gameObject, audioSource.clip.length);
+        }
+
         // TODO: W tym miejscu w Etapie 5 wywołamy GameManager, 
         // aby zaktualizować licznik zasobów gracza.
 

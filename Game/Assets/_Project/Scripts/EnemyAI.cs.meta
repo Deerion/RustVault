@@ -1,2 +1,16 @@
 fileFormatVersion: 2
 guid: 79b450a960a681b49ac4c5b1f43ad57f
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - agent: {instanceID: 0}
+  - animator: {instanceID: 0}
+  - hitSound: {fileID: 8300000, guid: 9017ebdc4011e2942a68806801a2f039, type: 3}
+  - attackSound: {fileID: 8300000, guid: 50646cb1194abc04fbb635eebd169143, type: 3}
+  - deathSound: {fileID: 8300000, guid: 4cb7d1b26f875f549bfc700aaaa02f8f, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

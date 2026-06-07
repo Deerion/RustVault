@@ -8,7 +8,7 @@ public class EnemyAI : LivingEntity
     [Header("Sztuczna Inteligencja")]
     public EnemyState currentState = EnemyState.Patrol;
     public float aggroRange = 15f;
-    public float attackRange = 1.2f; // Zmniejszone, by podchodził pod sam nos
+    public float attackRange = 1.2f;
 
     [Header("Patrol (Swobodne chodzenie)")]
     public float patrolRadius = 10f;
@@ -20,13 +20,19 @@ public class EnemyAI : LivingEntity
     private float lastAttackTime = 0f;
 
     [Header("Optymalizacja AI")]
-    public float pathUpdateDelay = 0.15f;  // Wróg aktualizuje cel co 0.15 sekundy (zapobiega zacinaniu)
+    public float pathUpdateDelay = 0.15f;
     private float pathUpdateTimer = 0f;
 
     [Header("Referencje")]
     public NavMeshAgent agent;
-    public Animator animator; 
+    public Animator animator;
     private Transform playerTransform;
+
+    [Header("Dźwięki")]
+    public AudioClip hitSound;     // Dźwięk, gdy MY uderzamy wroga
+    public AudioClip attackSound;  // Dźwięk, gdy wróg uderza nas
+    public AudioClip deathSound;   // Dźwięk śmierci wroga (body-fall)
+    private AudioSource audioSource;
 
     private void Awake()
     {
@@ -47,6 +53,9 @@ public class EnemyAI : LivingEntity
         {
             agent = GetComponent<NavMeshAgent>();
         }
+
+        // Pobieramy AudioSource z wroga
+        audioSource = GetComponent<AudioSource>();
     }
 
     void Update()
@@ -58,13 +67,11 @@ public class EnemyAI : LivingEntity
 
         if (isDead || playerTransform == null || agent == null || !agent.isOnNavMesh) return;
 
-        // Ignorujemy wysokość (oś Y). Liczymy odległość tylko "na płasko".
         Vector3 enemyPosFlat = new Vector3(transform.position.x, 0, transform.position.z);
         Vector3 playerPosFlat = new Vector3(playerTransform.position.x, 0, playerTransform.position.z);
 
         float distanceToPlayer = Vector3.Distance(enemyPosFlat, playerPosFlat);
 
-        // MASZYNA STANÓW WROGA (FSM)
         if (distanceToPlayer <= attackRange)
         {
             currentState = EnemyState.Attack;
@@ -128,15 +135,13 @@ public class EnemyAI : LivingEntity
     {
         if (!agent.isOnNavMesh) return;
 
-        agent.isStopped = false; // Upewniamy się, że wróg może chodzić
-
-        // Zamiast wyliczać trasę co klatkę, korzystamy z licznika czasu
+        agent.isStopped = false;
         pathUpdateTimer += Time.deltaTime;
 
         if (pathUpdateTimer > pathUpdateDelay)
         {
             agent.SetDestination(playerTransform.position);
-            pathUpdateTimer = 0f; // Resetujemy stoper
+            pathUpdateTimer = 0f;
         }
     }
 
@@ -152,9 +157,14 @@ public class EnemyAI : LivingEntity
         {
             Debug.Log("Potwór zadaje obrażenia graczowi!");
 
-            animator.SetTrigger("Attack"); 
-
+            animator.SetTrigger("Attack");
             lastAttackTime = Time.time;
+
+            // Odtworzenie dźwięku ataku
+            if (audioSource != null && attackSound != null)
+            {
+                audioSource.PlayOneShot(attackSound);
+            }
 
             IDamageable target = playerTransform.GetComponent<IDamageable>();
             if (target != null)
@@ -164,9 +174,29 @@ public class EnemyAI : LivingEntity
         }
     }
 
+    // Nadpisujemy metodę obrywania, żeby dodać dźwięk
+    public override void TakeDamage(int damage)
+    {
+        base.TakeDamage(damage); // Wykonujemy standardowe odejmowanie HP z LivingEntity
+
+        if (audioSource != null && hitSound != null && !isDead)
+        {
+            audioSource.PlayOneShot(hitSound);
+        }
+    }
+
     public override void Die()
     {
         Debug.Log("Potwór został zlikwidowany!");
+
+        if (audioSource != null && deathSound != null)
+        {
+            // Trik z odpięciem dźwięku dla usuwanego obiektu
+            audioSource.transform.parent = null;
+            audioSource.PlayOneShot(deathSound);
+            Destroy(audioSource.gameObject, deathSound.length);
+        }
+
         base.Die();
     }
 }
