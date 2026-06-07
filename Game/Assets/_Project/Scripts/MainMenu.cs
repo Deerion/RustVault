@@ -1,19 +1,37 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // WAŻNE: Biblioteka do obsługi scen
+using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
-    // Metoda podpinana pod przycisk GRAJ
-    public void PlayGame()
+    [Header("Panels")]
+    public GameObject optionsPanel; // do podpiecia w inspektorze
+
+    private void Start()
     {
-        // Podmień "NazwaTwojejScenyZGra" na dokładną nazwę pliku z Twoim poziomem (np. "SampleScene")
+        // na starcie upewniam sie, ze panel opcji jest ukryty
+        if (optionsPanel != null)
+            optionsPanel.SetActive(false);
+    }
+
+    // podpiete pod przycisk Graj / New Game
+    public void PlayNewGame()
+    {
+        // ladowanie glownej sceny gry
         SceneManager.LoadScene("SampleScene");
     }
 
-    // Metoda podpinana pod przycisk WYJŚCIE
+    // podpiete pod przycisk Opcje
+    public void ToggleOptions()
+    {
+        // odwraca stan panelu (jak wlaczony to wylacza i na odwrot)
+        if (optionsPanel != null)
+            optionsPanel.SetActive(!optionsPanel.activeSelf);
+    }
+
+    // podpiete pod przycisk Wyjscie
     public void QuitGame()
     {
-        Debug.Log("Zamykanie gry..."); // Ten log pojawi się w Unity (bo w edytorze gra się nie wyłączy)
-        Application.Quit(); // To zadziała po zbudowaniu gotowej gry do pliku .exe
+        Debug.Log("Wychodze z gry...");
+        Application.Quit();
     }
 }

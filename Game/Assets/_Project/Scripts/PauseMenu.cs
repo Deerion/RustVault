@@ -1,65 +1,85 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.InputSystem; // Do obsługi klawisza ESC w nowym systemie
+using UnityEngine.InputSystem;
 
 public class PauseMenu : MonoBehaviour
 {
-    [Header("Referencja do interfejsu")]
-    public GameObject pausePanel; // Tu podepniemy nasz Panel
+    [SerializeField] private GameObject pausePanel;
+    [SerializeField] private CanvasGroup pauseCanvasGroup;
+
+    [SerializeField] private float fadeDuration = 0.2f;
 
     private bool isPaused = false;
+    private Coroutine fadeCoroutine;
 
-    void Start()
+    private void Start()
     {
-        // Upewniamy się, że menu pauzy jest wyłączone na starcie
+        // na starcie ukrywamy pauze
         pausePanel.SetActive(false);
+        pauseCanvasGroup.alpha = 0f;
     }
 
-    void Update()
+    private void Update()
     {
-        // Sprawdzamy, czy wciśnięto przycisk ESC na klawiaturze
+        // sprawdzanie czy wcisnieto escape
         if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
-            if (isPaused)
-            {
-                ResumeGame();
-            }
-            else
-            {
-                PauseGame();
-            }
+            if (isPaused) ResumeGame();
+            else PauseGame();
         }
     }
 
     public void PauseGame()
     {
-        pausePanel.SetActive(true); // Pokazujemy menu
-        Time.timeScale = 0f; // Zatrzymuje cały czas w grze (0 klatek na sekundę)
         isPaused = true;
+        Time.timeScale = 0f; // zatrzymanie czasu w grze
 
-        // Uwalniamy kursor myszy, żeby można było kliknąć przycisk
+        // odblokowanie i pokazanie kursora, zeby dalo sie klikac w menu
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+
+        pausePanel.SetActive(true);
+
+        // plynne pojawianie
+        if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
+        fadeCoroutine = StartCoroutine(FadeUI(pauseCanvasGroup, 0f, 1f, fadeDuration));
     }
 
     public void ResumeGame()
     {
-        pausePanel.SetActive(false); // Chowamy menu
-        Time.timeScale = 1f; // Przywracamy normalny czas gry
         isPaused = false;
+        Time.timeScale = 1f; // wznowienie czasu
 
-        // Znowu blokujemy i chowamy kursor
+        // zablokowanie i ukrycie kursora po powrocie do gry
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        // plynne znikanie
+        if (fadeCoroutine != null) StopCoroutine(fadeCoroutine);
+        fadeCoroutine = StartCoroutine(FadeUI(pauseCanvasGroup, 1f, 0f, fadeDuration, true));
     }
 
     public void LoadMainMenu()
     {
-        // BARDZO WAŻNE: Przed zmianą sceny trzeba odblokować czas!
-        // Inaczej Main Menu też wczyta się "zamrożone".
-        Time.timeScale = 1f;
-
-        // Tutaj upewnij się, że nazwa to dokładnie nazwa Twojej sceny menu
+        Time.timeScale = 1f; // trzeba zresetowac czas przed zmiana sceny, bo inaczej menu bedzie zamrozone
         SceneManager.LoadScene("MainMenu");
+    }
+
+    // korutyna do fade'owania UI
+    private IEnumerator FadeUI(CanvasGroup cg, float start, float end, float duration, bool disable = false)
+    {
+        float elapsed = 0f;
+        cg.alpha = start;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime; // unscaled bo timeScale = 0 podczas pauzy
+            cg.alpha = Mathf.Lerp(start, end, elapsed / duration);
+            yield return null;
+        }
+
+        cg.alpha = end;
+        if (disable) pausePanel.SetActive(false);
     }
 }
