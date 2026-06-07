@@ -1,7 +1,8 @@
 fileFormatVersion: 2
-guid: f7ada0af4f174f0694ca6a487b8f543d
-ShaderImporter:
-  defaultTextures: []
+guid: c41005c129ba4d66911b75229fd70b45
+timeCreated: 1480316912
+licenseType: Store
+NativeFormatImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
@@ -10,5 +11,5 @@ AssetOrigin:
   productId: 144839
   packageName: Low Poly Shooter Pack - Free Sample
   packageVersion: 2.0.0
-  assetPath: Assets/TextMesh Pro/Shaders/TMP_SDF-Surface.shader
+  assetPath: Assets/TextMesh Pro/Resources/Sprite Assets/EmojiOne.asset
   uploadId: 469425

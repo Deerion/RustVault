@@ -1,7 +1,7 @@
 fileFormatVersion: 2
-guid: f7ada0af4f174f0694ca6a487b8f543d
-ShaderImporter:
-  defaultTextures: []
+guid: 1b8d251f9af63b746bf2f7ffe00ebb9b
+DefaultImporter:
+  externalObjects: {}
   userData: 
   assetBundleName: 
   assetBundleVariant: 
@@ -10,5 +10,5 @@ AssetOrigin:
   productId: 144839
   packageName: Low Poly Shooter Pack - Free Sample
   packageVersion: 2.0.0
-  assetPath: Assets/TextMesh Pro/Shaders/TMP_SDF-Surface.shader
+  assetPath: Assets/TextMesh Pro/Documentation/TextMesh Pro User Guide 2016.pdf
   uploadId: 469425

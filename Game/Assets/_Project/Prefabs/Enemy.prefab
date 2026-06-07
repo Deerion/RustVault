@@ -134,7 +134,7 @@ MonoBehaviour:
   isDead: 0
   currentState: 0
   aggroRange: 7
-  attackRange: 1
+  attackRange: 2
   patrolRadius: 10
   patrolWaitTime: 3
   attackCooldown: 2
@@ -151,7 +151,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.1
-  m_Speed: 3
+  m_Speed: 2.5
   m_Acceleration: 30
   avoidancePriority: 50
   m_AngularSpeed: 720
@@ -219,6 +219,10 @@ PrefabInstance:
       propertyPath: m_Controller
       value: 
       objectReference: {fileID: 9100000, guid: 85ebf0bae6aa0b04da8aa61cab1cfb56, type: 2}
+    - target: {fileID: 5866666021909216657, guid: 73ffbc06802a247cfb1b26f4ee67eba8, type: 3}
+      propertyPath: m_CullingMode
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
