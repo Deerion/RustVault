@@ -44,7 +44,7 @@ public class EnemyAI : LivingEntity
 
     protected override void Start()
     {
-        PlayerMovement player = FindFirstObjectByType<PlayerMovement>();
+        PlayerMovement player = FindAnyObjectByType<PlayerMovement>();
         if (player != null)
         {
             playerTransform = player.transform;
@@ -165,11 +165,13 @@ public class EnemyAI : LivingEntity
 
             animator.SetTrigger("Attack");
             lastAttackTime = Time.time;
+            
+            StartCoroutine(DealDamageWithDelay(0.7f));
 
-            IDamageable target = playerTransform.GetComponent<IDamageable>();
-            if (target != null)
+            // Odtworzenie dźwięku ataku:
+            if (audioSource != null && attackSound != null)
             {
-                target.TakeDamage(25);
+                audioSource.PlayOneShot(attackSound);
             }
         }
     }
@@ -177,7 +179,7 @@ public class EnemyAI : LivingEntity
     // Nadpisujemy metodę obrywania, żeby dodać dźwięk
     public override void TakeDamage(int damage)
     {
-        base.TakeDamage(damage); // Wykonujemy standardowe odejmowanie HP z LivingEntity
+        base.TakeDamage(damage);
 
         if (audioSource != null && hitSound != null && !isDead)
         {
